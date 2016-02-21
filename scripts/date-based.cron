@@ -1,0 +1,29 @@
+#!/bin/bash
+#daily
+
+DATE=`date +%Y%m%d`
+YESTERDAY=`date --date='1day ago' +%Y%m%d`
+
+DIR_NEW=$DIR_DATA/current
+DIR_OLD=$DIR_DATA/$YESTERDAY
+
+mkdir $DIR_OLD
+
+for USER in $DATA_USERS
+do
+        USER_DIR=$DIR_NEW/$USER
+        USER_DIR_OLD=$DIR_OLD/$USER
+        mkdir $USER_DIR_OLD
+        mv $USER_DIR/* $USER_DIR_OLD/.
+        chown $USER:users $USER_DIR_OLD
+        chmod a=rx $USER_DIR_OLD #Prohibit addition of new data to old days
+done
+
+chmod -R a=rx $DIR_OLD #Prohibit modification of any files in previous day
+chmod -R u=rx $DIR_OLD
+
+#Backup Data
+mount -o remount,rw DIR_BACKUP
+rsync -avH $DIR_OLD /DIR_BACKUP > /var/sync/$(date +%Y%m%d)_databackup_log 
+#End includes logging
+mount -o remount,ro DIR_BACKUP

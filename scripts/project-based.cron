@@ -1,0 +1,7 @@
+#!/bin/bash
+#weekly
+
+mount -o remount,rw DIR_BACK
+rsync -avH --delete DIR_DATA DIR_BACK > /var/sync/$(date+%Y%m%d)_simulation_sync 
+#End includes logging
+mount -o remount,ro DIR_BACK

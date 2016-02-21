@@ -1,0 +1,45 @@
+#!/bin/bash
+#daily
+
+YEAR=`date +%Y`
+MONTH=`date +%m`
+DAY=`date +%d`
+YESTERDAYYEAR=`date --date='1day ago' +%Y`
+YESTERDAYMONTH=`date --date='1day ago' +%m`
+YESTERDAYDAY=`date --date='1day ago' +%d`
+
+for USER in $DATA_USERS
+do
+        USER_YEAR=$DIR_DATA/$USER/Y$YEAR
+        USER_MONTH=$DIR_DATA/$USER/Y$YEAR/M$MONTH
+        USER_DIR=$DIR_DATA/$USER/Y$YEAR/M$MONTH/D$DAY
+        USER_BACK=$DIR_BACK/$USER/Y$YEAR/M$MONTH/D$DAY
+        USER_OLD=$DIR_DATA/$USER/Y$YESTERDAYYEAR/M$YESTERDAYMONTH/D$YESTERDAYDAY
+        BACK_OLD=$DIR_BACK/$USER/Y$YESTERDAYYEAR/M$YESTERDAYMONTH/D$YESTERDAYDAY
+        if [ ! -d "$USER_YEAR" ]; then
+            mkdir $USER_YEAR
+            chown $USER:users $USER_YEAR
+        fi
+        if [ ! -d "$USER_MONTH" ]; then
+            mkdir $USER_MONTH
+            chown $USER:users $USER_MONTH
+        fi
+        mkdir $USER_DIR
+        chown $USER:users $USER_DIR
+        chown -R $USER:users $USER_OLD
+        chmod a+rwx $USER_DIR
+        chmod -R a-w $USER_OLD
+        chmod -R u+wx $USER_OLD
+        files=$(ls -1 $USER_OLD | wc -l)
+        if [ "$files" == 0 ]; then
+            rmdir $USER_OLD
+        else #make backup
+           mount -o remount,rw $DIR_BACK
+           mkdir $BACK_OLD
+           cp -r $USER_OLD/* $BACK_OLD/.
+           chown -R $USER:users $BACK_OLD
+           chmod -R a-w $BACK_OLD
+           mount -o remount,ro $DIR_BACK
+        fi
+done
+
